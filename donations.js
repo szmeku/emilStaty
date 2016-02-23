@@ -84,12 +84,4 @@ let fetchRawPage = (page) => {
 
 module.exports = {
     fetchDonations: fetchDonations
-}
-//
-// Promise.all(_.map(fetchDonations)(_.range(1000, 1002)))
-//     .then(_.flatten)
-//     .then((donations) => {
-//         var d = 123;
-//     });
-
-
+};
