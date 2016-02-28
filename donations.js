@@ -8,9 +8,11 @@ var request = require('request'),
 
 let fetchRawPage = (page) => {
 
-        var resolve = null,
+        let resolve,
+            reject,
             promise = new Promise(function (res, rej) {
                 resolve = res;
+                reject = rej;
             });
 
         request({
@@ -28,9 +30,11 @@ let fetchRawPage = (page) => {
                 'Connection': 'keep-alive'
             }
         }, function (error, response, body) {
+
             if (error) {
-                console.log(error);
+                reject(error);
             }
+
             resolve(body);
         });
 
@@ -65,21 +69,24 @@ let fetchRawPage = (page) => {
                 return _.zip(acc, next);
             }, []),
             _.map(_.flatten),
-            _.map(_.zipObj(_.keys(data)))
+            _.map(_.zipObj(_.keys(data))),
+            _.map(createDonation)
         )(data);
     },
 
     createDonation = _.evolve({
-        date: (date) => moment(date).toDate().getTime(),
-        amount: Number
+        date: (date) => moment(date).toDate(),
+        amount: amount => {
+            let result = Number(amount);
+
+            if (isNaN(result)) {
+                return 0;
+            }
+            return result;
+        }
     }),
 
-    fetchDonations = (page) => {
-
-        return fetchRawPage(page)
-            .then(rawPageToDonations)
-            .then(_.map(createDonation))
-    };
+    fetchDonations = (page) => fetchRawPage(page).then(rawPageToDonations);
 
 
 module.exports = {

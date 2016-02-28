@@ -1,58 +1,44 @@
 'use strict';
 
-var Promise = require('promise');
+var Donations = require('./donations'),
+    db = require('./db'),
+    _ = require('ramda')
 
-var MongoClient = require('mongodb').MongoClient;
-var url = 'mongodb://localhost:27017/emil';
+let connection = db.connect();
 
-let dbConnect = function(url){
+function fetchAllDonations(page) {
 
-    var resolve,
-        reject,
-        promise = new Promise(function (res, rej) {
-            resolve = res;
-            reject = rej;
-        });
+    if (!page) {
+        page = 1;
+    }
 
-    MongoClient.connect(url, function (err, db) {
+    Donations.fetchDonations(page)
 
-        insertDonations(db,)
+        .then((donations)=> {
 
+            if (_.isEmpty(donations)) {
 
-        insertDonations(db, function () {
-            db.close();
-        });
-    });
+                console.log('koniec!!');
+                return false;
+            }
 
-};
+            connection.then(db.insertMany(_.__, donations));
 
-let insertDonations = function (db, donations) {
+            console.log('strona', page);
 
-    var resolve,
-        reject,
-        promise = new Promise(function (res, rej) {
-            resolve = res;
-            reject = rej;
-        });
+            fetchAllDonations(page + 1)
 
-    db.collection('donations').insertMany([{a: 1}], function (err, result) {
+        })
+        .catch((error) => {
 
-        if (err) {
-            return reject(err);
-        }
-
-        resolve(result);
-    });
-
-    return promise;
-};
-
-MongoClient.connect(url, function (err, db) {
-
-    insertDonations(db,)
+            console.log('ERROR', error);
+            console.log('retrying again', page);
+            fetchAllDonations(page);
+        })
+}
 
 
-    insertDonations(db, function () {
-        db.close();
-    });
-});
+fetchAllDonations();
+
+//
+
