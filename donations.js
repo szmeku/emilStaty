@@ -1,21 +1,15 @@
 'use strict';
 
-var request = require('request'),
-    Promise = require('promise'),
+var Promise = require('promise'),
+    promisify = require('es6-promisify'),
     moment = require('moment'),
+    request = promisify(require('request')),
     _ = require('ramda');
 
 
 let fetchRawPage = (page) => {
 
-        let resolve,
-            reject,
-            promise = new Promise(function (res, rej) {
-                resolve = res;
-                reject = rej;
-            });
-
-        request({
+        return request({
             url: 'https://www.siepomaga.pl/en/emil', //URL to hit
             qs: {page: page, slug: 'emil', '_': '1456183348239'}, //Query string data
             method: 'GET', //Specify the method
@@ -29,17 +23,7 @@ let fetchRawPage = (page) => {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Connection': 'keep-alive'
             }
-        }, function (error, response, body) {
-
-            if (error) {
-                reject(error);
-            }
-
-            resolve(body);
         });
-
-        return promise;
-
     },
     regexps = {
         date: "date\\\\\\'>([^<]+)<",
@@ -86,7 +70,11 @@ let fetchRawPage = (page) => {
         }
     }),
 
-    fetchDonations = (page) => fetchRawPage(page).then(rawPageToDonations);
+    fetchDonations = (page) => fetchRawPage(page).then(
+        _.pipe(
+            _.last,
+            rawPageToDonations
+        ));
 
 
 module.exports = {

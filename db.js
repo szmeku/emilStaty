@@ -1,5 +1,7 @@
 'use strict';
 
+// todo: promisify callbacks here
+
 var Promise = require('promise'),
     MongoClient = require('mongodb').MongoClient,
     url = 'mongodb://localhost:27017/emil',
@@ -34,7 +36,7 @@ let connect = () => {
                 reject = rej;
             });
 
-        connection.collection('donations-testy').insertMany(items, function (err, result) {
+        connection.collection('donations').insertMany(items, function (err, result) {
 
             if (err) {
                 return reject(err);
